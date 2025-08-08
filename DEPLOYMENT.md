@@ -31,11 +31,12 @@ sudo chmod -R 775 /var/www/new.greatticket.my/storage
 sudo chmod -R 775 /var/www/new.greatticket.my/bootstrap/cache
 
 # Laravel setup
-php artisan key:generate
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 php artisan storage:link
+
+# Note: We don't run 'php artisan key:generate' to preserve existing encrypted data
 ```
 
 ### Environment Settings
@@ -52,6 +53,7 @@ DB_PASSWORD=Nepal@977Greatticket
 **Important:** 
 - The `.env` file is not tracked in Git and will be preserved during deployments.
 - Database is already set up on VPS - no migrations will be run during deployment.
+- **APP_KEY must not be changed** - it would break existing encrypted passwords and data.
 
 ### 2. GitHub Actions Setup (Optional)
 

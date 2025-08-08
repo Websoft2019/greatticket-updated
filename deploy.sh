@@ -52,6 +52,7 @@ if [ ! -f "$PROJECT_DIR/.env" ]; then
     print_status "Setting up environment file..."
     cp $PROJECT_DIR/.env.production $PROJECT_DIR/.env
     print_warning "Please update $PROJECT_DIR/.env with your settings"
+    print_warning "Make sure to set the correct APP_KEY from your existing VPS setup"
 fi
 
 # Set proper permissions
