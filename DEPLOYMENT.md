@@ -20,7 +20,9 @@ composer install --no-dev --optimize-autoloader
 
 # Set up environment
 cp .env.production .env
-nano .env  # Update any specific settings if needed
+nano .env  # Update with your VPS-specific settings
+
+# Note: .env file is not tracked in Git and won't be overwritten by deployments
 
 # Set permissions
 sudo chown -R www-data:www-data /var/www/new.greatticket.my
@@ -38,7 +40,7 @@ php artisan storage:link
 ```
 
 ### Environment Settings
-Update `.env` with your database credentials:
+Create and configure your VPS-specific `.env` file:
 ```env
 APP_ENV=production
 APP_DEBUG=false
@@ -47,6 +49,8 @@ DB_DATABASE=greatticket
 DB_USERNAME=greatticket
 DB_PASSWORD=Nepal@977Greatticket
 ```
+
+**Important:** The `.env` file is not tracked in Git and will be preserved during deployments.
 
 ### 2. GitHub Actions Setup (Optional)
 

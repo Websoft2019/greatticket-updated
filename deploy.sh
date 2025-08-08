@@ -37,6 +37,12 @@ cd $PROJECT_DIR || {
 print_status "Pulling latest changes from GitHub..."
 git pull origin $BRANCH
 
+# Preserve existing .env file (don't overwrite with repository version)
+if [ -f "$PROJECT_DIR/.env" ]; then
+    print_status "Preserving existing .env configuration..."
+    git checkout HEAD -- .env 2>/dev/null || true
+fi
+
 # Install PHP dependencies
 print_status "Installing/updating PHP dependencies..."
 composer install --no-dev --optimize-autoloader
