@@ -343,7 +343,7 @@
     </footer><!-- Footer -->
     <div class="bottom-footer">
         <div class="container">
-            <p>All rights reserved {{ date('Y') }}-<a title="" href="#">Great Ticket</a> By <a
+            <p>All rights reserved {{ date('Y') }}-<a title="" href="#">Great Ticket Version 2.0</a> By <a
                     title="" href="http://websofttechnology.com.my">Websoft Technology</a></p>
         </div>
     </div><!-- Bottom Footer -->

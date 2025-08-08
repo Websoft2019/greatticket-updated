@@ -10,6 +10,33 @@
 
 ### 1. Deploy Laravel Project
 
+#### If you have an existing project (not using Git yet):
+```bash
+# Navigate to your existing project directory
+cd /var/www/new.greatticket.my
+
+# Initialize Git repository
+git init
+
+# Add GitHub as remote repository (use HTTPS for simplicity)
+git remote add origin https://github.com/Websoft2019/greatticket-updated.git
+
+# Pull the latest code from GitHub
+git pull origin main
+
+# Install/update dependencies
+composer install --no-dev --optimize-autoloader
+
+# Update Laravel cache
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+php artisan storage:link
+
+# Note: Your existing .env file will be preserved
+```
+
+#### If starting fresh (new installation):
 ```bash
 # Clone/update the repository on VPS
 git clone git@github.com:Websoft2019/greatticket-updated.git /var/www/new.greatticket.my
@@ -86,13 +113,17 @@ If you want automatic deployment later, you can set up GitHub Actions by adding 
 
 ## 🔄 Daily Development Workflow
 
+### **Step 1: On Your Local Computer (when you make changes)**
 ```bash
-# On your local machine - make changes and push to GitHub
+# After making code changes in your project
 git add .
-git commit -m "Describe your changes"
+git commit -m "Describe what you changed"
 git push origin main
+```
 
-# On your VPS - pull and update the live site
+### **Step 2: On Your VPS (to get the latest changes)**
+```bash
+# SSH into your VPS and run these commands
 ssh your-username@your-vps-ip
 cd /var/www/new.greatticket.my
 git pull origin main
@@ -101,6 +132,8 @@ php artisan config:cache
 php artisan route:cache  
 php artisan view:cache
 ```
+
+**That's it!** Your VPS now has the latest code from GitHub. 🚀
 
 ## 📊 Monitoring & Maintenance
 
