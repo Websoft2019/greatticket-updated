@@ -1,139 +1,98 @@
 # Great Ticket - VPS Deployment Guide
 
-## 🚀 Quick Deployment
+## 🚀 Simple Deployment (VPS Already Configured)
 
-### Prerequisites on VPS
-- Ubuntu 20.04+ or Debian 10+
-- Root or sudo access
-- Domain name pointing to your VPS
+### Prerequisites ✅
+- VPS is already configured with web server, PHP, MySQL
+- Database is already set up
+- Domain `new.greatticket.my` is configured
+- SSL certificate is installed
 
-### 1. Initial VPS Setup
-
-```bash
-# Clone the repository
-git clone git@github.com:Websoft2019/greatticket-updated.git /var/www/greatticket
-cd /var/www/greatticket
-
-# Make deployment script executable
-chmod +x deploy.sh
-
-# Run deployment script
-./deploy.sh
-```
-
-### 2. Configure Environment
+### 1. Deploy Laravel Project
 
 ```bash
-# Edit production environment
-sudo nano /var/www/greatticket/.env
-```
+# Clone/update the repository on VPS
+git clone git@github.com:Websoft2019/greatticket-updated.git /var/www/new.greatticket.my
+cd /var/www/new.greatticket.my
 
-Update these critical settings:
-```env
-APP_ENV=production
-APP_DEBUG=false
-APP_URL=https://your-domain.com
-DB_DATABASE=greatticket_production
-DB_USERNAME=your_db_user
-DB_PASSWORD=your_secure_password
-```
-
-### 3. Database Setup
-
-```bash
-# Create MySQL database and user
-sudo mysql -u root -p
-```
-
-```sql
-CREATE DATABASE greatticket_production;
-CREATE USER 'greatticket_user'@'localhost' IDENTIFIED BY 'secure_password';
-GRANT ALL PRIVILEGES ON greatticket_production.* TO 'greatticket_user'@'localhost';
-FLUSH PRIVILEGES;
-EXIT;
-```
-
-### 4. Nginx Configuration
-
-```bash
-# Copy nginx config
-sudo cp /var/www/greatticket/nginx-config.conf /etc/nginx/sites-available/greatticket
-
-# Edit with your domain
-sudo nano /etc/nginx/sites-available/greatticket
-
-# Enable site
-sudo ln -s /etc/nginx/sites-available/greatticket /etc/nginx/sites-enabled/
-
-# Remove default site
-sudo rm /etc/nginx/sites-enabled/default
-
-# Test and restart nginx
-sudo nginx -t
-sudo systemctl restart nginx
-```
-
-### 5. SSL Certificate (Let's Encrypt)
-
-```bash
-# Install Certbot
-sudo apt install snapd
-sudo snap install core; sudo snap refresh core
-sudo snap install --classic certbot
-
-# Create symlink
-sudo ln -s /snap/bin/certbot /usr/bin/certbot
-
-# Get certificate
-sudo certbot --nginx -d your-domain.com -d www.your-domain.com
-```
-
-### 6. GitHub Actions Setup
-
-Add these secrets to your GitHub repository:
-- `VPS_HOST`: Your VPS IP address
-- `VPS_USERNAME`: Your VPS username
-- `VPS_SSH_KEY`: Your private SSH key content
-
-## 🔧 Manual Deployment Commands
-
-```bash
-# Pull latest changes
-git pull origin main
-
-# Install/update dependencies
+# Install dependencies
 composer install --no-dev --optimize-autoloader
 
-# Run migrations
-php artisan migrate --force
+# Set up environment
+cp .env.production .env
+nano .env  # Update any specific settings if needed
 
-# Clear and cache
+# Set permissions
+sudo chown -R www-data:www-data /var/www/new.greatticket.my
+sudo chmod -R 755 /var/www/new.greatticket.my
+sudo chmod -R 775 /var/www/new.greatticket.my/storage
+sudo chmod -R 775 /var/www/new.greatticket.my/bootstrap/cache
+
+# Laravel setup
+php artisan key:generate
+php artisan migrate --force
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
+php artisan storage:link
+```
 
-# Restart services
-sudo systemctl restart nginx
-sudo systemctl restart php8.1-fpm
+### Environment Settings
+Update `.env` with your database credentials:
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://new.greatticket.my
+DB_DATABASE=greatticket
+DB_USERNAME=greatticket
+DB_PASSWORD=Nepal@977Greatticket
+```
+
+### 2. GitHub Actions Setup (Optional)
+
+Add these secrets to your GitHub repository for automatic deployment:
+- `VPS_HOST`: Your VPS IP address  
+- `VPS_USERNAME`: Your VPS username
+- `VPS_SSH_KEY`: Your private SSH key content
+
+## 🔄 Update Workflow (Daily Use)
+
+```bash
+# Navigate to project directory
+cd /var/www/new.greatticket.my
+
+# Pull latest changes from GitHub
+git pull origin main
+
+# Install/update dependencies  
+composer install --no-dev --optimize-autoloader
+
+# Run database migrations (if any new ones)
+php artisan migrate --force
+
+# Clear and rebuild cache
+php artisan config:cache
+php artisan route:cache  
+php artisan view:cache
 ```
 
 ## 📊 Monitoring & Maintenance
 
 ### Log Files
-- Application: `/var/www/greatticket/storage/logs/laravel.log`
-- Nginx Access: `/var/log/nginx/greatticket_access.log`
-- Nginx Error: `/var/log/nginx/greatticket_error.log`
+- Application: `/var/www/new.greatticket.my/storage/logs/laravel.log`
+- Web Server Access: Check your web server's access logs
+- Web Server Error: Check your web server's error logs
 
 ### Regular Maintenance
 ```bash
 # Clear old logs (weekly)
-sudo find /var/www/greatticket/storage/logs -name "*.log" -mtime +30 -delete
+sudo find /var/www/new.greatticket.my/storage/logs -name "*.log" -mtime +30 -delete
 
 # Update system packages (monthly)
 sudo apt update && sudo apt upgrade -y
 
 # Backup database (daily via cron)
-mysqldump -u greatticket_user -p greatticket_production > backup_$(date +%Y%m%d).sql
+mysqldump -u greatticket -p greatticket > backup_$(date +%Y%m%d).sql
 ```
 
 ## 🔒 Security Checklist
@@ -152,9 +111,9 @@ mysqldump -u greatticket_user -p greatticket_production > backup_$(date +%Y%m%d)
 
 1. **Permission Errors**
    ```bash
-   sudo chown -R www-data:www-data /var/www/greatticket
-   sudo chmod -R 755 /var/www/greatticket
-   sudo chmod -R 775 /var/www/greatticket/storage
+   sudo chown -R www-data:www-data /var/www/new.greatticket.my
+   sudo chmod -R 755 /var/www/new.greatticket.my
+   sudo chmod -R 775 /var/www/new.greatticket.my/storage
    ```
 
 2. **Database Connection Issues**
@@ -162,9 +121,10 @@ mysqldump -u greatticket_user -p greatticket_production > backup_$(date +%Y%m%d)
    - Verify credentials in `.env`
    - Test connection: `php artisan tinker` then `DB::connection()->getPdo();`
 
-3. **Nginx 502 Error**
-   - Check PHP-FPM: `sudo systemctl status php8.1-fpm`
-   - Check Nginx error logs: `sudo tail -f /var/log/nginx/error.log`
+3. **Web Server 502/500 Error**
+   - Check your web server status
+   - Check PHP-FPM: `sudo systemctl status php-fpm` or `sudo systemctl status php8.1-fpm`
+   - Check web server error logs
 
 4. **SSL Issues**
    - Renew certificate: `sudo certbot renew`
