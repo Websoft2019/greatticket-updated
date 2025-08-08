@@ -55,26 +55,48 @@ DB_PASSWORD=Nepal@977Greatticket
 - Database is already set up on VPS - no migrations will be run during deployment.
 - **APP_KEY must not be changed** - it would break existing encrypted passwords and data.
 
-### 2. GitHub Actions Setup (Optional)
+### 2. Manual Deployment Workflow (Recommended)
 
-Add these secrets to your GitHub repository for automatic deployment:
+When you want to deploy your code changes:
+
+```bash
+# 1. Push your changes to GitHub (from your local machine)
+git add .
+git commit -m "Your changes description"
+git push origin main
+
+# 2. SSH into your VPS and update the code
+ssh your-username@your-vps-ip
+cd /var/www/new.greatticket.my
+git pull origin main
+composer install --no-dev --optimize-autoloader
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
+### 3. GitHub Actions Setup (Optional - Skip This For Manual Deployment)
+
+If you want automatic deployment later, you can set up GitHub Actions by adding these secrets to your repository:
 - `VPS_HOST`: Your VPS IP address  
 - `VPS_USERNAME`: Your VPS username
 - `VPS_SSH_KEY`: Your private SSH key content
 
-## 🔄 Update Workflow (Daily Use)
+*Note: Skip this section for now since you're doing manual deployment.*
+
+## 🔄 Daily Development Workflow
 
 ```bash
-# Navigate to project directory
+# On your local machine - make changes and push to GitHub
+git add .
+git commit -m "Describe your changes"
+git push origin main
+
+# On your VPS - pull and update the live site
+ssh your-username@your-vps-ip
 cd /var/www/new.greatticket.my
-
-# Pull latest changes from GitHub
 git pull origin main
-
-# Install/update dependencies  
 composer install --no-dev --optimize-autoloader
-
-# Clear and rebuild cache
 php artisan config:cache
 php artisan route:cache  
 php artisan view:cache
