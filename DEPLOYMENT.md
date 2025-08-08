@@ -4,7 +4,7 @@
 
 ### Prerequisites ✅
 - VPS is already configured with web server, PHP, MySQL
-- Database is already set up
+- Database is already set up and populated
 - Domain `new.greatticket.my` is configured
 - SSL certificate is installed
 
@@ -32,7 +32,6 @@ sudo chmod -R 775 /var/www/new.greatticket.my/bootstrap/cache
 
 # Laravel setup
 php artisan key:generate
-php artisan migrate --force
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
@@ -50,7 +49,9 @@ DB_USERNAME=greatticket
 DB_PASSWORD=Nepal@977Greatticket
 ```
 
-**Important:** The `.env` file is not tracked in Git and will be preserved during deployments.
+**Important:** 
+- The `.env` file is not tracked in Git and will be preserved during deployments.
+- Database is already set up on VPS - no migrations will be run during deployment.
 
 ### 2. GitHub Actions Setup (Optional)
 
@@ -70,9 +71,6 @@ git pull origin main
 
 # Install/update dependencies  
 composer install --no-dev --optimize-autoloader
-
-# Run database migrations (if any new ones)
-php artisan migrate --force
 
 # Clear and rebuild cache
 php artisan config:cache

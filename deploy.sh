@@ -63,7 +63,6 @@ sudo chmod -R 775 $PROJECT_DIR/bootstrap/cache
 
 # Laravel optimization
 print_status "Running Laravel optimizations..."
-php artisan migrate --force
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache

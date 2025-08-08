@@ -56,7 +56,6 @@ jobs:
           # Keep the existing .env file (don't overwrite)
           git checkout HEAD -- .env 2>/dev/null || true
           composer install --no-dev --optimize-autoloader
-          php artisan migrate --force
           php artisan config:cache
           php artisan route:cache
           php artisan view:cache
