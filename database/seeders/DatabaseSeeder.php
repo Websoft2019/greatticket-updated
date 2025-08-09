@@ -21,26 +21,20 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // Call the ReligionSeeder first to ensure religions are available
+        // Call the base seeders first to ensure dependencies are available
         $this->call([
             ReligionSeeder::class,
             CategorySeeder::class,
             PrivacyPolicySeeder::class,
             TermsAndConditionSeeder::class,
+            UserSeeder::class, // Our new dedicated user seeder
         ]);
 
-        DB::table('users')->insert([
-            'name' => 'Admin',
-            'email' => 'admin@gmail.com',
-            'role' => 'a',
-            'religion_id' => 4,
-            'dob' => '2000/01/01',
-            'password' => Hash::make('password')
-        ]);
-
+        // Create additional random users using factories
         User::factory()->count(10)->create(); // Creates 10 normal users
 
-        User::factory()->organizer()->count(10)->create()->each(function ($user) {
+        // Create additional organizers with their profiles
+        User::factory()->organizer()->count(5)->create()->each(function ($user) {
             // Create corresponding organizer details directly using the relationship
             $user->organizer()->create([
                 'address' => fake()->address(),
@@ -50,9 +44,8 @@ class DatabaseSeeder extends Seeder
                 'organizer_id' => $user->id, // Link the coupon to the current user (organizer)
             ]);
         });
-        // Event::factory()->count(10)->create();
-        
 
+        // Create events with packages
         Event::factory()
             ->count(10)
             ->create()
@@ -61,6 +54,5 @@ class DatabaseSeeder extends Seeder
                     'event_id' => $event->id,
                 ]);
             });
-        // User::factory()->admin()->count(1)->create();
     }
 }
