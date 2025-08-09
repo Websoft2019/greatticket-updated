@@ -58,7 +58,8 @@ fi
 # Set proper permissions
 print_status "Setting file permissions..."
 sudo chown -R www-data:www-data $PROJECT_DIR
-sudo chmod -R 755 $PROJECT_DIR
+sudo find $PROJECT_DIR -type d -exec chmod 755 {} \;
+sudo find $PROJECT_DIR -type f -exec chmod 644 {} \;
 sudo chmod -R 775 $PROJECT_DIR/storage
 sudo chmod -R 775 $PROJECT_DIR/bootstrap/cache
 

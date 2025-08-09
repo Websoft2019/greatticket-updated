@@ -27,6 +27,13 @@ git pull origin main
 # Install/update dependencies
 composer install --no-dev --optimize-autoloader
 
+# Set proper file permissions (critical for Laravel)
+sudo chown -R www-data:www-data /var/www/new.greatticket.my
+sudo find /var/www/new.greatticket.my -type d -exec chmod 755 {} \;
+sudo find /var/www/new.greatticket.my -type f -exec chmod 644 {} \;
+sudo chmod -R 775 /var/www/new.greatticket.my/storage
+sudo chmod -R 775 /var/www/new.greatticket.my/bootstrap/cache
+
 # Update Laravel cache
 php artisan config:cache
 php artisan route:cache
@@ -44,6 +51,13 @@ cd /var/www/new.greatticket.my
 
 # Install dependencies
 composer install --no-dev --optimize-autoloader
+
+# Set proper file permissions (critical for Laravel)
+sudo chown -R www-data:www-data /var/www/new.greatticket.my
+sudo find /var/www/new.greatticket.my -type d -exec chmod 755 {} \;
+sudo find /var/www/new.greatticket.my -type f -exec chmod 644 {} \;
+sudo chmod -R 775 /var/www/new.greatticket.my/storage
+sudo chmod -R 775 /var/www/new.greatticket.my/bootstrap/cache
 
 # Set up environment
 cp .env.production .env
