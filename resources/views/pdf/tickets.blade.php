@@ -1,3 +1,6 @@
+@php
+    use App\Helpers\QRCodeHelper;
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 
@@ -123,8 +126,12 @@
 
 <body>
     <div class="header">
-        <img src="file://{{public_path('site/images/logo.png') }}"
-            alt="Logo" style="width: 200px; height: auto;">
+        @php
+            $logoPath = QRCodeHelper::getSafePublicPath('site/images/logo.png');
+        @endphp
+        @if($logoPath)
+            <img src="file://{{ $logoPath }}" alt="Logo" style="width: 200px; height: auto;">
+        @endif
 
         <h2>Ticket Purchase Details</h2>
         <p>Customer Name: {{ $purchaseDetails['customer_name'] }}</p>
@@ -139,8 +146,12 @@
                     <table>
                         <tr>
                             <td class="logo">
-                                <img src="file://{{public_path('site/images/logo.png') }}"
-                                    alt="Logo" width="120">
+                                @php
+                                    $logoPath = QRCodeHelper::getSafePublicPath('site/images/logo.png');
+                                @endphp
+                                @if($logoPath)
+                                    <img src="file://{{ $logoPath }}" alt="Logo" width="120">
+                                @endif
                             </td>
                             <td class="header-right">
                                 <strong>{{ $packageData['event'] ?? 'Event Title' }}</strong><br>
@@ -159,8 +170,16 @@
                             <!-- QR Section -->
                             <td class="qr-section" width="25%">
                                 <p><strong>Scan QR to Enter</strong></p>
-                                <img src="file://{{ storage_path('app/public/' . $ticketUser['qr_image']) }}"
-                                    alt="QR Code">
+                                @php
+                                    $qrImagePath = QRCodeHelper::getSafeImagePath($ticketUser['qr_image'] ?? '');
+                                @endphp
+                                @if($qrImagePath)
+                                    <img src="file://{{ $qrImagePath }}" alt="QR Code">
+                                @else
+                                    <div style="width: 120px; height: 120px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center;">
+                                        <span style="font-size: 10px;">QR Code Not Available</span>
+                                    </div>
+                                @endif
                                 <p>QR Code</p>
                                 <p class="ticket-code">{{ $ticketUser['qr_code'] ?? 'N/A' }}</p>
                             </td>
@@ -184,22 +203,26 @@
                                     <div class="row"><span class="label">Payment Status:</span> {{$purchaseDetails['payment_status']}} </div>
                                 </div>
                                 <div class="organizer-details">
-                                    @if (!empty($packageData['organizer_photo']))
+                                    @php
+                                        $organizerPhotoPath = QRCodeHelper::getSafeImagePath($packageData['organizer_photo'] ?? '');
+                                    @endphp
+                                    @if ($organizerPhotoPath)
                                         <div class="img">
-                                            <img src="file://{{ storage_path('app/public/' . $packageData['organizer_photo']) }}"
-                                        alt="Organizer Photo">
+                                            <img src="file://{{ $organizerPhotoPath }}" alt="Organizer Photo">
                                         </div>
                                     @endif
-                                    <div class="row">If you have any question, please reach out to <b>{{ $packageData['organizer_name'] }}</b>
+                                    <div class="row">If you have any question, please reach out to <b>{{ $packageData['organizer_name'] ?? 'Organizer' }}</b>
                                     </div>
                                 </div>
                             </td>
 
                             <!-- Poster Section -->
                             <td class="poster-section" width="25%">
-                                @if (!empty($packageData['poster']))
-                                    <img src="file://{{ storage_path('app/public/' . $packageData['poster']) }}"
-                                        alt="Event Poster">
+                                @php
+                                    $posterPath = QRCodeHelper::getSafeImagePath($packageData['poster'] ?? '');
+                                @endphp
+                                @if ($posterPath)
+                                    <img src="file://{{ $posterPath }}" alt="Event Poster">
                                 @endif
                             </td>
                         </tr>

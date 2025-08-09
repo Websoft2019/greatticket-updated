@@ -1,3 +1,6 @@
+@php
+    use App\Helpers\QRCodeHelper;
+@endphp
 <!DOCTYPE html>
 <html>
 <head>
@@ -6,8 +9,13 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: url('{{ public_path("images/bg.jpg") }}') no-repeat right center;
-            background-size: contain;
+            @php
+                $bgImagePath = QRCodeHelper::getSafePublicPath("images/bg.jpg");
+            @endphp
+            @if($bgImagePath)
+                background: url('{{ "file://" . $bgImagePath }}') no-repeat right center;
+                background-size: contain;
+            @endif
             margin: 0;
             padding: 40px;
         }
@@ -93,10 +101,10 @@
                         <td>RM {{ $orderPackage->package->actual_cost }}</td>
                         <td>
                             @php
-                                $qrPath = storage_path('app/public/' . $user->qr_image); // or wherever your image is stored
+                                $qrPath = QRCodeHelper::getSafeImagePath($user->qr_image);
                                 $qrBase64 = '';
                             
-                                if (file_exists($qrPath)) {
+                                if ($qrPath) {
                                     $qrBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($qrPath));
                                 }
                             @endphp

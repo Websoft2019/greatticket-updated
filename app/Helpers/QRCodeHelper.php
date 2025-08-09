@@ -45,4 +45,59 @@ class QRCodeHelper
         }
         return '';
     }
+
+    /**
+     * Safely get a valid file path for PDF generation, ensuring the path exists and is a file.
+     *
+     * @param string|null $relativePath The relative path from storage/app/public/
+     * @param string $defaultPath Alternative path to try if the first fails
+     * @return string|null Valid file path or null if no valid file found
+     */
+    public static function getSafeImagePath(?string $relativePath, string $defaultPath = ''): ?string
+    {
+        if (empty($relativePath)) {
+            return null;
+        }
+
+        $fullPath = storage_path('app/public/' . $relativePath);
+        
+        if (file_exists($fullPath) && is_file($fullPath)) {
+            return $fullPath;
+        }
+
+        // Try default path if provided
+        if (!empty($defaultPath) && file_exists($defaultPath) && is_file($defaultPath)) {
+            return $defaultPath;
+        }
+
+        Log::warning("File not found or is directory", [
+            'requested_path' => $relativePath,
+            'full_path' => $fullPath,
+            'default_path' => $defaultPath
+        ]);
+
+        return null;
+    }
+
+    /**
+     * Get a safe public asset path for PDF generation.
+     *
+     * @param string $publicPath The path relative to public directory
+     * @return string|null Valid file path or null if file doesn't exist
+     */
+    public static function getSafePublicPath(string $publicPath): ?string
+    {
+        $fullPath = public_path($publicPath);
+        
+        if (file_exists($fullPath) && is_file($fullPath)) {
+            return $fullPath;
+        }
+
+        Log::warning("Public file not found", [
+            'requested_path' => $publicPath,
+            'full_path' => $fullPath
+        ]);
+
+        return null;
+    }
 }
