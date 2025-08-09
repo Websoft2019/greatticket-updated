@@ -785,12 +785,36 @@ class SiteController extends Controller
             'total_price' => $order->grandtotal,
             'service_charge' => $order->servicecharge
         ];
-        // dd($order->servicecharge+$order->grandtotal);
-        $pdf = Pdf::loadView('pdf.tickets', compact('purchaseDetails'));
-        // Save the PDF temporarily
-        $pdfPath = storage_path('app/public/tickets.pdf');
-        $pdf->save($pdfPath);
-        // dd($pdfPath);
+        
+        // Increase memory limit for PDF generation
+        $previousMemory = \App\Helpers\QRCodeHelper::increaseMemoryForPdf('256M');
+        
+        try {
+            // Log memory usage for monitoring
+            \Log::info('Ticket PDF generation memory usage', [
+                'before_pdf' => memory_get_usage(true),
+                'memory_limit' => ini_get('memory_limit'),
+                'order_id' => $order->id,
+                'total_tickets' => $purchaseDetails['total_tickets']
+            ]);
+            
+            $pdf = Pdf::loadView('pdf.tickets', compact('purchaseDetails'));
+            
+            // Save the PDF temporarily
+            $pdfPath = storage_path('app/public/tickets.pdf');
+            $pdf->save($pdfPath);
+            
+            \Log::info('Ticket PDF generation completed', [
+                'after_pdf' => memory_get_usage(true),
+                'peak_memory' => memory_get_peak_usage(true),
+                'pdf_path' => $pdfPath
+            ]);
+            
+        } finally {
+            // Always reset memory limit
+            \App\Helpers\QRCodeHelper::resetMemoryLimit($previousMemory);
+        }
+        
         return view('emails.ticket-purchase', ['data' => $data, 'pdfPath' => $pdfPath, 'customer_name' => $user->name, 'ic_number' => $user->ic, 'total_tickets' => $order->orderPackages->sum('quantity'), 'total_price' => $order->servicecharge + $order->grandtotal]);
     }
 }

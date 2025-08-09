@@ -70,9 +70,21 @@ class QRCodeHelper
 
         foreach ($possiblePaths as $fullPath) {
             if (file_exists($fullPath) && is_file($fullPath)) {
+                // Check file size to prevent memory issues
+                $fileSize = filesize($fullPath);
+                if ($fileSize > 2 * 1024 * 1024) { // 2MB limit for PDF images
+                    Log::warning("getSafeImagePath: File too large for PDF", [
+                        'path' => $fullPath,
+                        'size' => $fileSize,
+                        'limit' => '2MB'
+                    ]);
+                    continue;
+                }
+                
                 Log::info("getSafeImagePath: Found valid file", [
                     'requested_path' => $relativePath,
-                    'found_path' => $fullPath
+                    'found_path' => $fullPath,
+                    'size' => $fileSize
                 ]);
                 return $fullPath;
             }
@@ -80,13 +92,17 @@ class QRCodeHelper
 
         // Try default path if provided
         if (!empty($defaultPath) && file_exists($defaultPath) && is_file($defaultPath)) {
-            Log::info("getSafeImagePath: Using default path", [
-                'default_path' => $defaultPath
-            ]);
-            return $defaultPath;
+            $fileSize = filesize($defaultPath);
+            if ($fileSize <= 2 * 1024 * 1024) { // 2MB limit
+                Log::info("getSafeImagePath: Using default path", [
+                    'default_path' => $defaultPath,
+                    'size' => $fileSize
+                ]);
+                return $defaultPath;
+            }
         }
 
-        Log::warning("getSafeImagePath: File not found in any location", [
+        Log::warning("getSafeImagePath: File not found in any location or too large", [
             'requested_path' => $relativePath,
             'tried_paths' => $possiblePaths,
             'default_path' => $defaultPath
@@ -174,5 +190,49 @@ class QRCodeHelper
         }
 
         return $debug;
+    }
+
+    /**
+     * Temporarily increase memory limit for PDF operations
+     *
+     * @param string $limit Memory limit (e.g., '256M', '512M')
+     * @return string Previous memory limit
+     */
+    public static function increaseMemoryForPdf(string $limit = '256M'): string
+    {
+        $previousLimit = ini_get('memory_limit');
+        
+        if (ini_set('memory_limit', $limit) === false) {
+            Log::warning("Failed to increase memory limit", [
+                'requested' => $limit,
+                'current' => $previousLimit
+            ]);
+        } else {
+            Log::info("Memory limit increased for PDF generation", [
+                'previous' => $previousLimit,
+                'new' => $limit
+            ]);
+        }
+        
+        return $previousLimit;
+    }
+
+    /**
+     * Reset memory limit to previous value
+     *
+     * @param string $previousLimit The previous memory limit to restore
+     */
+    public static function resetMemoryLimit(string $previousLimit): void
+    {
+        if (ini_set('memory_limit', $previousLimit) === false) {
+            Log::warning("Failed to reset memory limit", [
+                'target' => $previousLimit,
+                'current' => ini_get('memory_limit')
+            ]);
+        } else {
+            Log::info("Memory limit reset", [
+                'restored_to' => $previousLimit
+            ]);
+        }
     }
 }

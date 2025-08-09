@@ -220,12 +220,35 @@ class OrderController extends Controller
 
     public function generatePdf(Order $op_id){
         if($op_id->user_id == Auth()->user()->id){
-            $orderpackageinfo = OrderPackage::where('order_id', $op_id->id)->limit(1)->first();
-            $orderPackage = OrderPackage::with('ticketUsers')->findOrFail($orderpackageinfo->id);
-        
-            $event = $orderPackage->package->event;
-            $pdf = PDF::loadView("pdf.user-ticket", compact("orderPackage", "event"));
-            return $pdf->download("Event-Tickets.pdf");
+            // Increase memory limit for PDF generation
+            $previousMemory = \App\Helpers\QRCodeHelper::increaseMemoryForPdf('256M');
+            
+            try {
+                $orderpackageinfo = OrderPackage::where('order_id', $op_id->id)->limit(1)->first();
+                $orderPackage = OrderPackage::with('ticketUsers')->findOrFail($orderpackageinfo->id);
+            
+                $event = $orderPackage->package->event;
+                
+                // Log memory usage for monitoring
+                \Log::info('PDF generation memory usage', [
+                    'before_pdf' => memory_get_usage(true),
+                    'memory_limit' => ini_get('memory_limit'),
+                    'order_id' => $op_id->id,
+                    'tickets_count' => $orderPackage->ticketUsers->count()
+                ]);
+                
+                $pdf = PDF::loadView("pdf.user-ticket", compact("orderPackage", "event"));
+                
+                \Log::info('PDF generation completed', [
+                    'after_pdf' => memory_get_usage(true),
+                    'peak_memory' => memory_get_peak_usage(true)
+                ]);
+                
+                return $pdf->download("Event-Tickets.pdf");
+            } finally {
+                // Always reset memory limit
+                \App\Helpers\QRCodeHelper::resetMemoryLimit($previousMemory);
+            }
         }
         else{
             abort(404);
