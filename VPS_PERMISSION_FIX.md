@@ -67,13 +67,31 @@ php artisan view:clear
 php artisan route:clear
 ```
 
-### 7. Verify permissions are correct
+### 7. Fix Git ownership (if you encounter git pull errors)
+```bash
+# If you get "fatal: detected dubious ownership" error:
+# Option 1: Add safe directory (recommended)
+git config --global --add safe.directory /var/www/new.greatticket.my
+
+# Option 2: Alternative - fix ownership for your user
+sudo chown -R ishwor:ishwor /var/www/new.greatticket.my/.git
+
+# Then set proper application ownership back
+sudo chown -R www-data:www-data /var/www/new.greatticket.my
+# But keep .git owned by your user
+sudo chown -R ishwor:ishwor /var/www/new.greatticket.my/.git
+```
+
+### 8. Verify permissions are correct
 ```bash
 # Check storage directory permissions
 ls -la /var/www/new.greatticket.my/storage/
 
 # Check framework views directory specifically
 ls -la /var/www/new.greatticket.my/storage/framework/views/
+
+# Check git ownership
+ls -la /var/www/new.greatticket.my/.git/
 ```
 
 ## Security Best Practices
