@@ -56,23 +56,39 @@ class QRCodeHelper
     public static function getSafeImagePath(?string $relativePath, string $defaultPath = ''): ?string
     {
         if (empty($relativePath)) {
+            Log::info("getSafeImagePath: Empty relative path provided");
             return null;
         }
 
-        $fullPath = storage_path('app/public/' . $relativePath);
-        
-        if (file_exists($fullPath) && is_file($fullPath)) {
-            return $fullPath;
+        // Try multiple possible paths
+        $possiblePaths = [
+            storage_path('app/public/' . $relativePath),
+            storage_path('app/' . $relativePath),
+            public_path('storage/' . $relativePath),
+            public_path($relativePath)
+        ];
+
+        foreach ($possiblePaths as $fullPath) {
+            if (file_exists($fullPath) && is_file($fullPath)) {
+                Log::info("getSafeImagePath: Found valid file", [
+                    'requested_path' => $relativePath,
+                    'found_path' => $fullPath
+                ]);
+                return $fullPath;
+            }
         }
 
         // Try default path if provided
         if (!empty($defaultPath) && file_exists($defaultPath) && is_file($defaultPath)) {
+            Log::info("getSafeImagePath: Using default path", [
+                'default_path' => $defaultPath
+            ]);
             return $defaultPath;
         }
 
-        Log::warning("File not found or is directory", [
+        Log::warning("getSafeImagePath: File not found in any location", [
             'requested_path' => $relativePath,
-            'full_path' => $fullPath,
+            'tried_paths' => $possiblePaths,
             'default_path' => $defaultPath
         ]);
 
@@ -87,17 +103,76 @@ class QRCodeHelper
      */
     public static function getSafePublicPath(string $publicPath): ?string
     {
-        $fullPath = public_path($publicPath);
-        
-        if (file_exists($fullPath) && is_file($fullPath)) {
-            return $fullPath;
+        // Try multiple possible locations for public assets
+        $possiblePaths = [
+            public_path($publicPath),
+            public_path('assets/' . $publicPath),
+            public_path('site/' . $publicPath),
+            base_path('public/' . $publicPath)
+        ];
+
+        foreach ($possiblePaths as $fullPath) {
+            if (file_exists($fullPath) && is_file($fullPath)) {
+                Log::info("getSafePublicPath: Found valid file", [
+                    'requested_path' => $publicPath,
+                    'found_path' => $fullPath
+                ]);
+                return $fullPath;
+            }
         }
 
-        Log::warning("Public file not found", [
+        Log::warning("getSafePublicPath: Public file not found in any location", [
             'requested_path' => $publicPath,
-            'full_path' => $fullPath
+            'tried_paths' => $possiblePaths
         ]);
 
         return null;
+    }
+
+    /**
+     * Debug helper to check image availability for PDFs
+     *
+     * @param string|null $relativePath
+     * @return array Debug information
+     */
+    public static function debugImagePath(?string $relativePath): array
+    {
+        $debug = [
+            'input' => $relativePath,
+            'is_empty' => empty($relativePath),
+            'paths_checked' => [],
+            'found' => false,
+            'final_path' => null
+        ];
+
+        if (empty($relativePath)) {
+            return $debug;
+        }
+
+        $possiblePaths = [
+            'storage_app_public' => storage_path('app/public/' . $relativePath),
+            'storage_app' => storage_path('app/' . $relativePath),
+            'public_storage' => public_path('storage/' . $relativePath),
+            'public_direct' => public_path($relativePath)
+        ];
+
+        foreach ($possiblePaths as $key => $path) {
+            $exists = file_exists($path);
+            $isFile = $exists ? is_file($path) : false;
+            
+            $debug['paths_checked'][$key] = [
+                'path' => $path,
+                'exists' => $exists,
+                'is_file' => $isFile,
+                'valid' => $exists && $isFile
+            ];
+
+            if ($exists && $isFile && !$debug['found']) {
+                $debug['found'] = true;
+                $debug['final_path'] = $path;
+            }
+        }
+
+        return $debug;
     }
 }

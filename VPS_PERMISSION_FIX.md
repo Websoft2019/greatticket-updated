@@ -97,6 +97,55 @@ After running these commands:
 3. PDF generation should continue to work with our previous fixes
 4. The application should run smoothly on the VPS
 
+## PDF Images Missing? Additional Steps
+
+If PDFs are generating but images (QR codes, logos, posters) are missing, check these:
+
+### 1. Storage Link
+```bash
+# Check if storage link exists
+ls -la /var/www/new.greatticket.my/public/storage
+
+# If missing, create it
+cd /var/www/new.greatticket.my
+php artisan storage:link
+
+# Verify it points to the right location
+ls -la /var/www/new.greatticket.my/public/storage
+```
+
+### 2. QR Code Directory Permissions
+```bash
+# Check QR codes directory
+ls -la /var/www/new.greatticket.my/storage/app/public/qr_codes/
+
+# Set permissions if directory exists
+sudo chmod -R 775 /var/www/new.greatticket.my/storage/app/public/qr_codes/
+sudo chown -R www-data:www-data /var/www/new.greatticket.my/storage/app/public/qr_codes/
+```
+
+### 3. Debug Image Paths (Temporary)
+Add these routes to `routes/web.php` for debugging:
+```php
+Route::get('/debug-images', function () {
+    return response()->json([
+        'storage_link' => is_link(public_path('storage')),
+        'qr_dir_exists' => is_dir(storage_path('app/public/qr_codes')),
+        'qr_files_count' => count(glob(storage_path('app/public/qr_codes/*'))),
+        'sample_paths' => [
+            'storage_app_public' => storage_path('app/public'),
+            'public_storage' => public_path('storage'),
+        ]
+    ]);
+});
+```
+
+### 4. Common Image Issues:
+- **Missing storage link**: Run `php artisan storage:link`
+- **Wrong permissions**: QR codes need to be readable by web server
+- **Empty QR image paths**: Check database for null/empty qr_image fields
+- **File not found**: Images might be in different location than expected
+
 ## Common Web Server Users by OS:
 - **Ubuntu/Debian**: www-data
 - **CentOS/RHEL/Amazon Linux**: apache

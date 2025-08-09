@@ -172,12 +172,21 @@
                                 <p><strong>Scan QR to Enter</strong></p>
                                 @php
                                     $qrImagePath = QRCodeHelper::getSafeImagePath($ticketUser['qr_image'] ?? '');
+                                    
+                                    // Debug info (remove in production)
+                                    if (config('app.debug')) {
+                                        $debugInfo = QRCodeHelper::debugImagePath($ticketUser['qr_image'] ?? '');
+                                        Log::info('PDF Ticket QR Debug', $debugInfo);
+                                    }
                                 @endphp
                                 @if($qrImagePath)
                                     <img src="file://{{ $qrImagePath }}" alt="QR Code">
                                 @else
-                                    <div style="width: 120px; height: 120px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center;">
-                                        <span style="font-size: 10px;">QR Code Not Available</span>
+                                    <div style="width: 120px; height: 120px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                                        <span style="font-size: 12px; font-weight: bold;">QR CODE</span>
+                                        @if(config('app.debug'))
+                                            <span style="font-size: 8px; color: red;">{{ $ticketUser['qr_image'] ?? 'No QR image path' }}</span>
+                                        @endif
                                     </div>
                                 @endif
                                 <p>QR Code</p>

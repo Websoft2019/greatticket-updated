@@ -103,14 +103,36 @@
                             @php
                                 $qrPath = QRCodeHelper::getSafeImagePath($user->qr_image);
                                 $qrBase64 = '';
+                                
+                                // Debug info (remove in production)
+                                if (config('app.debug')) {
+                                    $debugInfo = QRCodeHelper::debugImagePath($user->qr_image);
+                                    Log::info('PDF QR Debug for user ' . $user->id, $debugInfo);
+                                }
                             
                                 if ($qrPath) {
-                                    $qrBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($qrPath));
+                                    try {
+                                        $qrBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($qrPath));
+                                    } catch (Exception $e) {
+                                        Log::error('Failed to encode QR image', [
+                                            'user_id' => $user->id,
+                                            'path' => $qrPath,
+                                            'error' => $e->getMessage()
+                                        ]);
+                                    }
                                 }
                             @endphp
                             
                             @if($qrBase64)
                                 <img src="{{ $qrBase64 }}" class="qr-img">
+                            @else
+                                <!-- Fallback: Show QR code info without image -->
+                                <div style="width: 50px; height: 50px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 8px;">
+                                    QR
+                                </div>
+                                @if(config('app.debug'))
+                                    <small style="color: red; font-size: 8px;">QR: {{ $user->qr_image ?? 'none' }}</small>
+                                @endif
                             @endif
 
                         </td>
